@@ -47,45 +47,71 @@ else:
 st.title("📊 AI Resource Forecasting Dashboard")
 st.write("Analyzing workforce utilization and predicting future staffing needs using AI-driven forecasting models.")
 
-# Tabs for Executive Summary, Historical Analysis, Future Forecasting, US Heatmap, and Pennsylvania Breakdown
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["🏆 Executive Summary", "📈 Historical Utilization", "🔮 AI Forecasting", "🗺️ US Workforce Heatmap", "📍 Pennsylvania Breakdown"])
+# Tabs for Executive Summary, Historical Analysis, Future Forecasting
+tab1, tab2, tab3 = st.tabs(["🏆 Executive Summary", "📈 Historical Utilization", "🔮 AI Forecasting"])
 
-with tab4:
-    st.subheader("🗺️ US Workforce Utilization Map")
+with tab1:
+    st.subheader("🏆 Executive Summary")
+    st.write("""
+    - 📊 **Top insights:** Workforce demand is expected to increase in **Texas and Florida** over the next quarter.
+    - 🚨 **Risk indicators:** Midwest offices are at risk of **understaffing** due to seasonal fluctuations.
+    - 🔮 **AI Recommendation:** Redistribute 10% of available workers to high-demand areas to balance workloads.
+    - 🌦️ **External Data Considerations:** Predicted extreme weather events in the Northeast may impact scheduling efficiency.
     
-    # Generate utilization data for all 50 states
-    us_states = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"]
+    **AI Techniques Used:**
+    - **Random Forest Regression**: Provides robust forecasting based on past utilization.
+    - **Scenario Simulation**: Allows executives to test different variables and see projected outcomes.
+    """)
+    st.success("Dashboard Updated: " + time.strftime("%Y-%m-%d %H:%M:%S"))
+
+with tab2:
+    st.subheader("📍 Workforce Utilization Trends")
     
-    state_data = pd.DataFrame({
-        "State": us_states,
-        "Utilization (%)": np.clip(np.random.normal(85, 5, len(us_states)), 70, 100)  # Ensuring values between 70-100%
+    # Simulated historical data
+    num_offices = 50
+    historical_data = pd.DataFrame({
+        "Office": [f"Office {i+1}" for i in range(num_offices)],
+        "Utilization (%)": np.random.randint(50, 100, num_offices),
+        "Seasonal Impact": np.random.choice(["High", "Moderate", "Low"], num_offices),
+        "Weather Impact": np.random.choice(["None", "Storms", "Extreme Heat"], num_offices)
     })
     
-    fig4 = px.choropleth(state_data, 
-                          locations="State", 
-                          locationmode="USA-states", 
-                          color="Utilization (%)", 
-                          color_continuous_scale=[(0, "red"), (0.5, "yellow"), (0.75, "green"), (1, "red")],
-                          scope="usa", 
-                          title="Workforce Utilization Across the US")
-    st.plotly_chart(fig4, use_container_width=True)
+    fig1 = px.bar(historical_data, x="Office", y="Utilization (%)", color="Seasonal Impact",
+                  title="Workforce Utilization by Office", height=500)
+    st.plotly_chart(fig1, use_container_width=True)
     
-    st.dataframe(state_data.style.background_gradient(cmap="coolwarm"))
+    st.dataframe(historical_data.style.background_gradient(cmap="coolwarm"))
 
-with tab5:
-    st.subheader("📍 Pennsylvania Workforce Utilization by County")
+with tab3:
+    st.subheader("🔮 AI-Powered Forecasting")
     
-    # Simulated county-level workforce utilization for Pennsylvania
-    pa_counties = ["Philadelphia", "Allegheny", "Montgomery", "Bucks", "Delaware", "Lancaster", "Chester", "York", "Berks", "Lehigh"]
-    
-    pa_data = pd.DataFrame({
-        "County": pa_counties,
-        "Utilization (%)": np.clip(np.random.normal(85, 5, len(pa_counties)), 70, 100)  # Ensuring values between 70-100%
+    # Simulated Forecasting Data
+    forecast_days = 30
+    forecast_data = pd.DataFrame({
+        "Day": pd.date_range(start=pd.Timestamp.today(), periods=forecast_days, freq='D'),
+        "Predicted Utilization (%)": np.random.randint(60, 95, forecast_days)
     })
     
-    fig5 = px.bar(pa_data, x="County", y="Utilization (%)", color="Utilization (%)",
-                  title="Workforce Utilization by County in Pennsylvania",
-                  color_continuous_scale=[(0, "red"), (0.5, "yellow"), (0.75, "green"), (1, "red")])
-    st.plotly_chart(fig5, use_container_width=True)
+    # Train ML Model (RandomForest for mock-up)
+    X = np.arange(forecast_days).reshape(-1, 1)
+    y = forecast_data["Predicted Utilization (%)"].values
+    model = RandomForestRegressor(n_estimators=100, random_state=42)
+    model.fit(X, y)
+    forecast_data["AI Forecast (%)"] = model.predict(X)
     
-    st.dataframe(pa_data.style.background_gradient(cmap="coolwarm"))
+    st.markdown("### 🎛️ Adjust Forecast Variables")
+    seasonality_factor = st.slider("Seasonal Impact", min_value=0, max_value=100, value=50)
+    weather_disruption = st.slider("Weather Disruption Level", min_value=0, max_value=100, value=30)
+    economic_trend = st.slider("Economic Growth Factor", min_value=0, max_value=100, value=40)
+    workforce_fluctuation = st.slider("Workforce Availability Change", min_value=0, max_value=100, value=50)
+    
+    adjusted_forecast = forecast_data["AI Forecast (%)"] * (
+        1 + (seasonality_factor - 50) / 200) * (1 - weather_disruption / 200) * (1 + economic_trend / 300) * (1 - workforce_fluctuation / 250)
+    
+    forecast_data["Adjusted AI Forecast (%)"] = adjusted_forecast
+    
+    fig2 = px.line(forecast_data, x="Day", y=["Predicted Utilization (%)", "AI Forecast (%)", "Adjusted AI Forecast (%)"],
+                   title="AI-Based Utilization Forecast with Adjustable Factors", markers=True)
+    st.plotly_chart(fig2, use_container_width=True)
+    
+    st.dataframe(forecast_data.style.background_gradient(cmap="coolwarm"))
