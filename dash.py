@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import numpy as np
 
 def calculate_business_value(executions_per_day, value_per_execution, days=20):
     return executions_per_day * value_per_execution * days
@@ -76,17 +77,18 @@ with tab1:
             st.markdown('</div>', unsafe_allow_html=True)
         
         st.subheader("Impact by Application")
-        for label, value, kpi, runs in zip(
+        for label, value, kpi in zip(
             ["Scheduler", "MUTCD Compliance", "Heatmap", "Forecaster"],
             [scheduler_total_value, mutcd_total_value, heatmap_monthly_value, forecaster_monthly_value],
             ["Project Completion, Resource Utilization", "Regulatory Compliance, Audit Findings",
-            "Incident Rate, Corrective Actions Taken", "Revenue Growth, Client Feedback Scores"],
-            [scheduler_executions, mutcd_executions, "N/A", "N/A"]):
+            "Incident Rate, Corrective Actions Taken", "Revenue Growth, Client Feedback Scores"]):
             
             with st.container():
                 st.markdown('<div class="container-box">', unsafe_allow_html=True)
                 st.subheader(label)
-                st.metric(label="Business Value ($)", value=f"${value:,.2f}", help=f"{kpi}\nRuns per day: {runs}")
+                st.metric(label="Business Value ($)", value=f"${value:,.2f}")
+                st.write("**Impacted KPIs:**")
+                st.write(kpi)
                 st.markdown('</div>', unsafe_allow_html=True)
     
     # Main Column - Application Visuals
@@ -116,7 +118,8 @@ with tab1:
             with st.container():
                 st.markdown('<div class="container-box">', unsafe_allow_html=True)
                 days = [f"Day {i+1}" for i in range(20)]
-                mutcd_values = [mutcd_executions for _ in range(20)]
+                mutcd_values = np.random.normal(loc=mutcd_executions, scale=mutcd_executions * 0.1, size=20).astype(int)
+                mutcd_values = np.clip(mutcd_values, mutcd_executions * 0.8, mutcd_executions * 1.2)  # Keep within range
                 mutcd_df = pd.DataFrame({"Day": days, "MUTCD Checks": mutcd_values})
                 fig = px.bar(mutcd_df, x="Day", y="MUTCD Checks")
                 st.plotly_chart(fig)
